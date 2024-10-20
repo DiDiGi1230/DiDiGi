@@ -511,7 +511,7 @@
                 entryContainer.appendChild(characterName);
 
                 const message = document.createElement('p');
-                message.textContent = `메시지: ${entry.message}`;
+                message.textContent = `　메시지: ${entry.message}`;
                 entryContainer.appendChild(message);
 
                 const dateSend = new Date(entry.date_send);
@@ -527,7 +527,7 @@
                 });
 
                 const dateSendElement = document.createElement('p');
-                dateSendElement.textContent = `보낸 시간: ${formattedDate}`;
+                dateSendElement.textContent = `　보낸 시간: ${formattedDate}`;
                 entryContainer.appendChild(dateSendElement);
 
                 resultDiv.appendChild(entryContainer);
