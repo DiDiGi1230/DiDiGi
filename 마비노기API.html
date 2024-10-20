@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>마비노기 OPEN API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-gap: 20px;
+        }
+        .grid-item {
+            background-color: #fafafa;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .grid-item h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .grid-item p {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .item-container {
+            display: flex;
+            align-items: flex-start;
+            border-bottom: 1px solid #ddd;
+            padding: 15px 0;
+            cursor: pointer;
+            position: relative;
+        }
+        .item-container img {
+            width: 60px;
+            height: 60px;
+            margin-right: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .item-container h3 {
+            font-size: 18px;
+            margin: 0;
+            flex: 1;
+            color: #333;
+        }
+        .item-container p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .item-detail {
+            background-color: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 100%;
+            margin-top: 5px;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        /* 드롭다운 스타일 */
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>마비노기 OPEN API</h1>
+
+    <div class="grid-container">
+        <!-- NPC 상점 조회 -->
+        <div class="grid-item">
+            <h3>NPC 상점 조회</h3>
+            <p>NPC 이름:
+                <select id="npc_name">
+                    <option value="델">델</option>
+                    <option value="델렌">델렌</option>
+                    <option value="상인 라누">상인 라누</option>
+                    <option value="상인 피루">상인 피루</option>
+                    <option value="모락">모락</option>
+                </select>
+            </p>
+            <p>서버 이름:
+                <select id="server_name">
+                    <option value="류트">류트</option>
+                    <option value="만돌린">만돌린</option>
+                    <option value="하프">하프</option>
+                    <option value="울프">울프</option>
+                </select>
+            </p>
+            <p>채널: <input type="number" id="channel" value="1" min="1" max="10"></p>
+            <button class="btn" onclick="getNpcShop()">NPC 상점 조회</button>
+        </div>
+
+        <!-- 경매장 정보 조회 -->
+        <div class="grid-item">
+            <h3>경매장 정보 조회</h3>
+            <p>아이템 카테고리:
+                <select id="auction_item_category">
+                    <option value="">선택하세요</option>
+                    <option value="개조석">개조석</option>
+                    <option value="검">검</option>
+                    <option value="원드">원드</option>
+                    <option value="경갑옷">경갑옷</option>
+                </select>
+            </p>
+            <p>아이템 이름: <input type="text" id="item_name" placeholder="예: 롱 소드"></p>
+            <p>정렬:
+                <select id="sort_order">
+                    <option value="">선택하세요</option>
+                    <option value="low_to_high">가격 낮은순</option>
+                    <option value="high_to_low">가격 높은순</option>
+                </select>
+            </p>
+            <button class="btn" onclick="searchAuction()">경매장 검색</button>
+        </div>
+
+        <!-- 거대한 외침의 뿔피리 내역 조회 -->
+        <div class="grid-item">
+            <h3>거대한 외침의 뿔피리 내역 조회</h3>
+            <p>서버 이름:
+                <select id="horn_server_name">
+                    <option value="류트">류트</option>
+                    <option value="만돌린">만돌린</option>
+                    <option value="하프">하프</option>
+                    <option value="울프">울프</option>
+                </select>
+            </p>
+            <button class="btn" onclick="getHornBugleHistory()">뿔피리 내역 조회</button>
+        </div>
+    </div>
+
+    <div id="result"></div>
+
+</div>
+
+<script>
+    const apiKey = 'test_481dcd859dde92c6b9ef93fb96b81e8a7d2d0968742346bafeded38bdeb3081cefe8d04e6d233bd35cf2fabdeb93fb0d';
+
+    // NPC 상점 조회 기능
+    function getNpcShop() {
+        const npcName = document.getElementById('npc_name').value;
+        const serverName = document.getElementById('server_name').value;
+        const channel = document.getElementById('channel').value;
+
+        const url = `https://open.api.nexon.com/mabinogi/v1/npcshop/list?npc_name=${npcName}&server_name=${serverName}&channel=${channel}`;
+
+        fetch(url, {
+            headers: {
+                'x-nxopen-api-key': apiKey
+            }
+        })
+        .then(response => response.json())
+        .then(data => displayNpcShop(data))
+        .catch(error => console.error('Error fetching NPC shop data:', error));
+    }
+
+    function displayNpcShop(data) {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = ''; // Clear previous results
+
+        if (data.shop && data.shop.length > 0) {
+            data.shop.forEach(shopTab => {
+                const tabTitle = document.createElement('h2');
+                tabTitle.textContent = `탭: ${shopTab.tab_name}`;
+                resultDiv.appendChild(tabTitle);
+
+                shopTab.item.forEach(item => {
+                    const itemContainer = document.createElement('div');
+                    itemContainer.className = 'item-container';
+
+                    const itemImage = document.createElement('img');
+                    itemImage.src = item.image_url;  // 이미지 URL이 제공된다고 가정합니다
+                    itemContainer.appendChild(itemImage);
+
+                    const itemName = document.createElement('h3');
+                    itemName.textContent = item.item_display_name;
+                    itemContainer.appendChild(itemName);
+
+                    const itemPrice = document.createElement('p');
+                    itemPrice.textContent = `가격: ${item.price[0].price_value} ${item.price[0].price_type}`;
+                    itemContainer.appendChild(itemPrice);
+
+                    // 아이템 클릭 시 상세 옵션 표시
+                    itemContainer.addEventListener('click', () => displayItemDetails(item, itemContainer));
+
+                    resultDiv.appendChild(itemContainer);
+                });
+            });
+        } else {
+            resultDiv.textContent = '상점 데이터를 찾을 수 없습니다.';
+        }
+    }
+
+    function displayItemDetails(item, itemContainer) {
+        const existingDetail = itemContainer.querySelector('.item-detail');
+        if (existingDetail) {
+            existingDetail.remove();
+            return;
+        }
+
+        const detailDiv = document.createElement('div');
+        detailDiv.className = 'item-detail';
+
+        const itemName = document.createElement('h2');
+        itemName.textContent = `아이템 이름: ${item.item_display_name}`;
+        detailDiv.appendChild(itemName);
+
+        const itemPrice = document.createElement('p');
+        itemPrice.textContent = `가격: ${item.price[0].price_value} ${item.price[0].price_type}`;
+        detailDiv.appendChild(itemPrice);
+
+        if (item.item_option && item.item_option.length > 0) {
+            const optionTitle = document.createElement('h3');
+            optionTitle.textContent = '아이템 옵션:';
+            detailDiv.appendChild(optionTitle);
+
+            item.item_option.forEach(option => {
+                const optionDetail = document.createElement('p');
+                optionDetail.textContent = `
+                    ${option.option_type || ''},
+                    ${option.option_sub_type || ''},
+                    ${option.option_value || ''},
+                    ${option.option_value2 || ''},
+                    ${option.option_desc || ''}`;
+                detailDiv.appendChild(optionDetail);
+            });
+        } else {
+            const noOption = document.createElement('p');
+            noOption.textContent = '아이템 옵션 정보가 없습니다.';
+            detailDiv.appendChild(noOption);
+        }
+
+        itemContainer.appendChild(detailDiv);
+    }
+
+    // 경매장 검색 기능
+    function searchAuction() {
+        const category = document.getElementById('auction_item_category').value;
+        const itemName = document.getElementById('item_name').value;
+        const sortOrder = document.getElementById('sort_order').value;
+
+        let url = `https://open.api.nexon.com/mabinogi/v1/auction/list?`;
+
+        if (category) url += `auction_item_category=${category}&`;
+        if (itemName) url += `item_name=${itemName}&`;
+
+        url = url.slice(0, -1);  // Remove last '&'
+
+        fetch(url, {
+            headers: {
+                'x-nxopen-api-key': apiKey
+            }
+        })
+        .then(response => response.json())
+        .then(data => displayAuction(data, sortOrder))
+        .catch(error => console.error('Error fetching auction data:', error));
+    }
+
+    function displayAuction(data, sortOrder) {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = ''; // Clear previous results
+
+        if (data.auction_item && data.auction_item.length > 0) {
+            // 정렬 기준에 맞게 정렬 (가격 낮은 순 또는 높은 순)
+            if (sortOrder === 'low_to_high') {
+                data.auction_item.sort((a, b) => a.auction_price_per_unit - b.auction_price_per_unit);
+            } else if (sortOrder === 'high_to_low') {
+                data.auction_item.sort((a, b) => b.auction_price_per_unit - a.auction_price_per_unit);
+            }
+
+            data.auction_item.forEach(item => {
+                const itemContainer = document.createElement('div');
+                itemContainer.className = 'item-container';
+                
+                // 경매장 아이템의 상세 정보 표시를 위한 클릭 이벤트 추가
+                itemContainer.addEventListener('click', () => displayAuctionItemDetails(item, itemContainer));
+
+                const itemName = document.createElement('h3');
+                itemName.textContent = item.item_display_name;
+                itemContainer.appendChild(itemName);
+
+                const itemCount = document.createElement('p');
+                itemCount.textContent = `판매 수량: ${item.item_count}`;
+                itemContainer.appendChild(itemCount);
+
+                const price = document.createElement('p');
+                price.textContent = `개당 가격: ${item.auction_price_per_unit}`;
+                itemContainer.appendChild(price);
+
+                resultDiv.appendChild(itemContainer);
+            });
+        } else {
+            resultDiv.textContent = '경매 데이터를 찾을 수 없습니다.';
+        }
+    }
+
+    // 경매장 아이템 클릭 시 상세 정보 표시
+    function displayAuctionItemDetails(item, itemContainer) {
+        const existingDetail = itemContainer.querySelector('.item-detail');
+        if (existingDetail) {
+            existingDetail.remove();  // 이미 열려 있으면 닫기
+            return;
+        }
+
+        // 상세 정보 생성
+        const detailDiv = document.createElement('div');
+        detailDiv.className = 'item-detail';
+
+        const itemName = document.createElement('h2');
+        itemName.textContent = `아이템 이름: ${item.item_display_name}`;
+        detailDiv.appendChild(itemName);
+
+        const itemCount = document.createElement('p');
+        itemCount.textContent = `수량: ${item.item_count}`;
+        detailDiv.appendChild(itemCount);
+
+        const price = document.createElement('p');
+        price.textContent = `개당 가격: ${item.auction_price_per_unit}`;
+        detailDiv.appendChild(price);
+
+        // 경매장 아이템의 옵션이 있는 경우 표시
+        if (item.item_option && item.item_option.length > 0) {
+            const optionTitle = document.createElement('h3');
+            optionTitle.textContent = '아이템 옵션:';
+            detailDiv.appendChild(optionTitle);
+
+            item.item_option.forEach(option => {
+                const optionDetail = document.createElement('p');
+                optionDetail.textContent = `
+                    ${option.option_type || ''},
+                    ${option.option_sub_type || ''},
+                    ${option.option_value || ''},
+                    ${option.option_desc || ''}`;
+                detailDiv.appendChild(optionDetail);
+            });
+        } else {
+            const noOption = document.createElement('p');
+            noOption.textContent = '아이템 옵션 정보가 없습니다.';
+            detailDiv.appendChild(noOption);
+        }
+
+        itemContainer.appendChild(detailDiv);
+    }
+
+    // 거대한 외침의 뿔피리 내역 조회
+    function getHornBugleHistory() {
+        const serverName = document.getElementById('horn_server_name').value;
+
+        const url = `https://open.api.nexon.com/mabinogi/v1/horn-bugle-world/history?server_name=${serverName}`;
+
+        fetch(url, {
+            headers: {
+                'x-nxopen-api-key': apiKey
+            }
+        })
+        .then(response => response.json())
+        .then(data => displayHornBugle(data))
+        .catch(error => console.error('Error fetching horn bugle data:', error));
+    }
+
+    function displayHornBugle(data) {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = ''; // Clear previous results
+
+        if (data.horn_bugle_world_history && data.horn_bugle_world_history.length > 0) {
+            data.horn_bugle_world_history.forEach(entry => {
+                const entryContainer = document.createElement('div');
+                entryContainer.className = 'item-container';
+
+                const characterName = document.createElement('h3');
+                characterName.textContent = `닉네임: ${entry.character_name}`;
+                entryContainer.appendChild(characterName);
+
+                const message = document.createElement('p');
+                message.textContent = `메시지: ${entry.message}`;
+                entryContainer.appendChild(message);
+
+                const dateSend = new Date(entry.date_send);
+                const koreaTime = new Date(dateSend.getTime() + (0 * 60 * 60 * 1000));
+                const formattedDate = koreaTime.toLocaleString('ko-KR', {
+                    timeZone: 'Asia/Seoul',
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    second: 'numeric'
+                });
+
+                const dateSendElement = document.createElement('p');
+                dateSendElement.textContent = `보낸 시간: ${formattedDate}`;
+                entryContainer.appendChild(dateSendElement);
+
+                resultDiv.appendChild(entryContainer);
+            });
+        } else {
+            resultDiv.textContent = '뿔피리 데이터를 찾을 수 없습니다.';
+        }
+    }
+</script>
+
+</body>
+</html>
